@@ -73,6 +73,10 @@ class TestSolverRegistry(object):
         assert fake_registry.get_next(descend=True) == two
 
 
+    def test_solvers_names(self, fake_registry):
+        assert fake_registry.solvers_names() == "one two three four".split()
+
+
     # testing 'private' funcs
 
     def test_get_unused_by_lvl(self, fake_registry):
@@ -90,7 +94,6 @@ class TestSolverRegistry(object):
 
     def test_get_all(self, fake_registry):
         get_all = fake_registry._get_all
-        solvers = fake_registry._solvers_params
 
         get_all('lvl', Level.PRIMARY) == [one]
         get_all('lvl', Level.ADDITIONAL) == [three, four]

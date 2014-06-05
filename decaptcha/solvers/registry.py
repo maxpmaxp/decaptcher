@@ -69,6 +69,11 @@ class SolversRegistry(object):
         self._current_solver = None
         self._used_solvers = []
 
+    @to_list
+    def solvers_names(self):
+        for solver in self._solvers_params:
+            yield solver['name']
+
     def get(self):
         if not self._current_solver:
             solver = self._get_one('lvl', self._current_lvl)
