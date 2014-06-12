@@ -21,3 +21,28 @@ API_KEYS = {
 }
 
 NET_TIMEOUT = 15
+
+
+class SolverRanks:
+    PRIMARY = 1
+    SECONDARY = 2
+    ADDITIONAL = 3
+
+    @classmethod
+    def lower(cls, rank):
+        return rank + 1 if (rank != cls.ADDITIONAL) else rank
+
+
+class Solvers:
+    ANTIGATE = 'antigate'
+    CAPTCHABOT = 'captchabot'
+    DE_CAPTCHER = 'de_captcher'
+    DEATH_BY_CAPTCHA = 'deathbycaptcha'
+
+    ranks = {
+        ANTIGATE: SolverRanks.PRIMARY,
+        CAPTCHABOT: SolverRanks.SECONDARY,
+        DE_CAPTCHER: SolverRanks.ADDITIONAL,
+        DEATH_BY_CAPTCHA: SolverRanks.ADDITIONAL,
+    }
+    names = ranks.keys()
