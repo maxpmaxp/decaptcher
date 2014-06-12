@@ -16,3 +16,4 @@ API_KEYS = {
     'deathbycaptcha': get_env_setting('DEATHBYCAPTCHA_API_KEY'),
 }
 
+NET_TIMEOUT = 15

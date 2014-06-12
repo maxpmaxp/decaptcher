@@ -1,20 +1,43 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 from antigate import AntiGate, AntiGateError
 
 import settings
+from errors import SolverError
 
 
-api = AntiGate(settings.ANTIGATE_API_KEY)
+class MyAntiGate(AntiGate):
+    def _go(self, *args, **kw):
+        try:
+            super(MyAntiGate, self)._go(*args, **kw)
+        except AntiGateError as error:
+            raise SolverError(error.message)
 
 
-def solve(captcha_img):
-    try:
+class BaseAntigateAPI(object):
+    api_key = None
+    domain = None
+
+    def __init__(self, api_key=None, domain=None):
+        self._api = MyAntiGate(
+            key=(api_key or self.api_key),
+            domain=(domain or self.domain),
+            grab_config={'connect_timeout': settings.NET_TIMEOUT},
+        )
+
+    def solve(self, captcha_img):
+        api = self._api
         captcha_id = api.send(captcha_img, binary=True)
         return api.get(captcha_id)
-    except AntiGateError as e:
-        return None, e.message
+
+    def balance(self):
+        return self._api.balance()
 
 
-def get_balance():
-    return api.balance()
+class AntigateAPI(BaseAntigateAPI):
+    api_key = settings.API_KEYS['antigate']
+    domain = 'antigate.com'
+
+    def minbid(self):
+        return self._api.load()['minbid']
