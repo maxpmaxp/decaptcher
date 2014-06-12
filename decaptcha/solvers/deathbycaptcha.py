@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+import settings
+from .antigate import BaseAntigateAPI
 
 
-def solve():
-    return 4, ""
-
-
-def get_balance():
-    return 1
+class DeathbycaptchaAPI(BaseAntigateAPI):
+    api_key = settings.API_KEYS['deathbycaptcha']
+    domain = "api.dbcapi.me"

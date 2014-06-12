@@ -1,20 +1,10 @@
 # -*- coding: utf-8 -*-
-
-from antigate import AntiGate, AntiGateError
+from __future__ import absolute_import
 
 import settings
+from .antigate import BaseAntigateAPI
 
 
-api = AntiGate(settings.CAPTCHABOT_API_KEY, domain="captchabot.com")
-
-
-def solve(captcha_img):
-    try:
-        captcha_id = api.send(captcha_img, binary=True)
-        return api.get(captcha_id)
-    except AntiGateError as e:
-        return None, e.message
-
-
-def get_balance():
-    return 1
+class CaptchabotAPI(BaseAntigateAPI):
+    api_key = settings.API_KEYS['captchabot']
+    domain = "captchabot.com"
