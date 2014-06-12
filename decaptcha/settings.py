@@ -9,6 +9,11 @@ def get_env_setting(setting):
     except KeyError:
         raise ValueError("Set the %s env variable" % setting)
 
+APP_ACCESS = {
+    'username': get_env_setting("APP_USERNAME"),
+    'password': get_env_setting("APP_PASSWORD"),
+}
+
 DE_CAPTCHER_ACCOUNT = {
     'username': get_env_setting('DE_CAPTCHER_USERNAME'),
     'password': get_env_setting('DE_CAPTCHER_PASSWORD'),
@@ -61,6 +66,12 @@ class Solvers:
 class CheckErrors:
     FAILS = 'fails'
     MINBID = 'minbid'
+
+BLOCK_PERIODS = {
+    CheckErrors.FAILS: 60 * 15,
+    CheckErrors.MINBID: 60 * 10,
+}
+
 
 REDIS_CONF = {
     'host': 'localhost',
