@@ -10,5 +10,9 @@ def get_env_setting(setting):
         raise ValueError("Set the %s env variable" % setting)
 
 
-ANTIGATE_API_KEY = get_env_setting('ANTIGATE_API_KEY')
-CAPTCHABOT_API_KEY = get_env_setting('CAPTCHABOT_API_KEY')
+API_KEYS = {
+    'antigate': get_env_setting('ANTIGATE_API_KEY'),
+    'captchabot': get_env_setting('CAPTCHABOT_API_KEY'),
+    'deathbycaptcha': get_env_setting('DEATHBYCAPTCHA_API_KEY'),
+}
+
