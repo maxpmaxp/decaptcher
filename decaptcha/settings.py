@@ -22,6 +22,16 @@ API_KEYS = {
 
 NET_TIMEOUT = 15
 
+MAX_FAILS_PERCENTAGE = 70
+FAILS_CHECK_INTERVAL = 60 * 15
+
+ANTIGATE_MAX_PRICE = 1  # за 1000 капч
+MINBID_CHECK_INTERVAL = 60 * 10
+
+MAX_COSTS = {}
+def get_max_cost(solver_name):
+    return MAX_COSTS.get(solver_name, 1)
+
 
 class SolverRanks:
     PRIMARY = 1
@@ -47,6 +57,10 @@ class Solvers:
     }
     names = ranks.keys()
 
+
+class CheckErrors:
+    FAILS = 'fails'
+    MINBID = 'minbid'
 
 REDIS_CONF = {
     'host': 'localhost',
