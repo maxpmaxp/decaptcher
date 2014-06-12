@@ -46,3 +46,11 @@ class Solvers:
         DEATH_BY_CAPTCHA: SolverRanks.ADDITIONAL,
     }
     names = ranks.keys()
+
+
+REDIS_CONF = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 0,
+    'password': None,
+}
