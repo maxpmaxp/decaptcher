@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import logging
+import logging.config
 
 from bottle import Bottle, run, request
 
@@ -14,10 +15,8 @@ from errors import SolverError
 
 app = Bottle()
 
-#TODO: log to file
-log = logging
-logging.basicConfig(format='%(levelname)s:%(message)s',
-                    level=logging.DEBUG)
+logging.config.dictConfig(settings.LOGGING)
+log = logging.getLogger('app')
 
 
 def validate_user(username, password):
@@ -32,18 +31,18 @@ def check_request(request):
     try:
         user = (data['username'], data['password'])
     except KeyError:
-        return u"нет параметров 'username', 'password' в POST-данных"
+        return u"Нет параметров 'username', 'password' в POST-данных"
 
     if not validate_user(*user):
-        return u"неверный логин/пароль (%s/%s)" % user
+        return u"Неверный логин/пароль (%s/%s)" % user
     elif 'pict' not in data:
-        return u"нет параметра 'pict' в POST-данных"
+        return u"Нет параметра 'pict' в POST-данных"
     elif query:
         service_name = query.get("upstream_service")
         if not service_name:
             return u"%s вместо 'upstream_service' в запросе" %  query.keys()
         elif service_name not in settings.Solvers.names:
-            return u"неизвестный upstream_service %s" % service_name
+            return u"Неизвестный upstream_service %s" % service_name
     else:
         return None
 
@@ -81,7 +80,7 @@ def solve_captcha():
     """
     error = check_request(request)
     if isinstance(error, basestring):
-        log.error(u"Ошибка: %s", error)
+        log.error(error)
         return decaptcher_response(result_code=ResultCodes.BAD_PARAMS)
 
     pict = request.POST['pict']

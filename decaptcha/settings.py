@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from os.path import dirname, join, abspath
 
 
 def get_env_setting(setting):
@@ -78,4 +79,40 @@ REDIS_CONF = {
     'port': 6379,
     'db': 0,
     'password': None,
+}
+
+
+ROOT_DIR = dirname(dirname(abspath(__file__)))
+root = lambda *x: join(ROOT_DIR, *x)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s [%(levelname)s] %(message)s',
+            'datefmt': '%d/%m %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'app': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': root('log/app.log'),
+            'maxBytes': 5 * 2**20,  # 5MB
+            'backupCount': 3
+        },
+    },
+    'loggers': {
+        'app': {
+            'handlers': ['app'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
 }
