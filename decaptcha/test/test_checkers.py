@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import time
 
-from mock import MagicMock
+from mock import patch, DEFAULT
 
 import settings
 from settings import CheckErrors
@@ -11,43 +10,36 @@ from checkers import (
     is_antigate_minbid_ok, is_fails_percentage_ok, check_solver)
 from solvers.api_list import SOLVER_APIS
 
-
 eps = 0.0001
 solver_name = settings.Solvers.ANTIGATE
-max_delta = 1
-settings.MAX_COSTS[solver_name] = max_delta
+settings.MAX_COSTS[solver_name] = max_delta = 1
+antigate_api = SOLVER_APIS[solver_name]
 
-
-def get_mock_api(solver_name):
-    api = SOLVER_APIS[solver_name]
-    api.balance = MagicMock()
-    api.minbid = MagicMock()
-    return api
 
 # TODO: удалить два теста ниже при удалении других balance-функций
-def test_update_balance(stub_storage):
-    api = get_mock_api(solver_name)
-    api.balance.return_value = 100
+@patch.multiple(antigate_api, balance=DEFAULT)
+def test_update_balance(balance, stub_storage):
+    balance.return_value = 100
 
     update_balance(solver_name, stub_storage)
     assert stub_storage.get_balance(solver_name) == 100
 
 
-def test_is_service_expensive(stub_storage):
+@patch.multiple(antigate_api, balance=DEFAULT)
+def test_is_service_expensive(balance, stub_storage):
     start_balance = 100
-    api = get_mock_api(solver_name)
     stub_storage.set_balance(solver_name, start_balance)
 
     # текущий баланс сервиса не отличается от стартового
-    api.balance.return_value = start_balance
+    balance.return_value = start_balance
     assert not is_service_expensive(solver_name, stub_storage)
 
     # текущий баланс сервиса меньше стартового на допустимую величину
-    api.balance.return_value = start_balance - max_delta / 2.
+    balance.return_value = start_balance - max_delta / 2.
     assert not is_service_expensive(solver_name, stub_storage)
 
     # текущий баланс сервиса меньше стартового на НЕдопустимую величину
-    api.balance.return_value = start_balance - max_delta * 2
+    balance.return_value = start_balance - max_delta * 2
     assert is_service_expensive(solver_name, stub_storage)
 
 
@@ -64,16 +56,16 @@ settings.MINBID_CHECK_INTERVAL = 1
 settings.FAILS_CHECK_INTERVAL = 2
 
 
-def test_checking_minbid(stub_storage):
+@patch.multiple(antigate_api, minbid=DEFAULT)
+def test_checking_minbid(minbid, stub_storage):
     max_price = settings.ANTIGATE_MAX_PRICE / 1000.
-    api = get_mock_api(settings.Solvers.ANTIGATE)
-    api.minbid.return_value = max_price + eps
+    minbid.return_value = max_price + eps
     assert not is_antigate_minbid_ok()
 
-    api.minbid.return_value = max_price
+    minbid.return_value = max_price
     assert is_antigate_minbid_ok()
 
-    api.minbid.return_value = max_price - eps
+    minbid.return_value = max_price - eps
     assert is_antigate_minbid_ok()
 
 
@@ -119,10 +111,10 @@ def test_checking_fails_percentage_with_timer(stub_storage):
     assert check_solver(service, storage) is None
 
 
-def test_checking_minbid_and_fails_percentage_with_timer(stub_storage):
+@patch.multiple(antigate_api, minbid=DEFAULT)
+def test_checking_minbid_and_fails_percentage_with_timer(minbid, stub_storage):
     storage = stub_storage
     service = settings.Solvers.ANTIGATE
-    api = get_mock_api(service)
 
     min_bid = settings.ANTIGATE_MAX_PRICE / 1000.
     cheap_bid = min_bid - eps
@@ -130,7 +122,7 @@ def test_checking_minbid_and_fails_percentage_with_timer(stub_storage):
 
     time_fails = 1
 
-    api.minbid.return_value = expensive_bid
+    minbid.return_value = expensive_bid
     storage.start_timer('minbid', time_fails)
     storage.start_timer('fails', time_fails + 1)
 
@@ -161,16 +153,16 @@ def test_checking_minbid_and_fails_percentage_with_timer(stub_storage):
     assert check_solver(service, storage) == CheckErrors.MINBID
 
     # не ок: хотя minbid понизился, но % фейлов по-прежнему велик
-    api.minbid.return_value = cheap_bid
+    minbid.return_value = cheap_bid
     assert check_solver(service, storage) == CheckErrors.FAILS
 
     # не ок: % фейлов понизился, но minbid повысился
-    api.minbid.return_value = expensive_bid
+    minbid.return_value = expensive_bid
     _incrby_uses(service, 99, storage)
     assert check_solver(service, storage) == CheckErrors.MINBID
 
     # ок: обе величины стали допустимыми
-    api.minbid.return_value = cheap_bid
+    minbid.return_value = cheap_bid
     assert check_solver(service, storage) is None
 
     # ок: % фейлов повысился, но т.к. мы запустили таймер 'fails',

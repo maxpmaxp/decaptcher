@@ -141,6 +141,7 @@ def test_solve_captcha(app):
     assert not solvers.get_next.called
     assert decaptcher_response.called
     reset_mocks(locals())
+    patch.stopall()
 
 
 @patch("app.check_solver_name")
