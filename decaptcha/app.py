@@ -28,7 +28,7 @@ requires_auth = auth_basic(check_user)
 
 def check_solver_name(name):
     if name not in settings.Solvers.names:
-        abort(400, u"Неизвестный upstream_service %s" % name)
+        abort(400, u"Неизвестный upstream_service: %r" % name)
     return None
 
 
@@ -39,7 +39,7 @@ def check_request(request):
     elif query:
         service_name = query.get("upstream_service")
         if not service_name:
-            return u"%s вместо 'upstream_service' в запросе" %  query.keys()
+            return u"%r вместо 'upstream_service' в запросе" %  query.keys()
         else:
             return check_solver_name(service_name)
     else:
