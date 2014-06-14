@@ -13,11 +13,22 @@ class RedisStorage(BaseStorage):
         super(RedisStorage, self).__init__()
         self.r = redis.StrictRedis(**settings.REDIS_CONF)
 
+    #### unused
+
     def set_current_solver(self, solver_name):
         self.r.set("current_solver", solver_name)
 
     def get_current_solver(self):
         return self.r.get("current_solver")
+
+    def get_balance(self, solver_name):
+        balance = self.r.hget("balances", solver_name)
+        return balance if (balance is None) else int(balance)
+
+    def set_balance(self, solver_name, value):
+        self.r.hset("balances", solver_name, value)
+
+    #### counters
 
     def _incr_counter(self, solver_name, counter_name):
         """
@@ -45,14 +56,7 @@ class RedisStorage(BaseStorage):
         counter = self.r.hget("counters:fails", solver_name)
         return int(counter or 0)
 
-    # TODO: удалить два метода с balance потом,
-    # если они также не будут использоваться
-    def get_balance(self, solver_name):
-        balance = self.r.hget("balances", solver_name)
-        return balance if (balance is None) else int(balance)
-
-    def set_balance(self, solver_name, value):
-        self.r.hset("balances", solver_name, value)
+    #### blocks
 
     def block(self, solver_name, seconds):
         """
@@ -65,6 +69,17 @@ class RedisStorage(BaseStorage):
 
     def is_blocked(self, solver_name):
         return not self.timer_expired("blocks:%s" % solver_name)
+
+    def ban(self, solver_name):
+        self.r.sadd("bans", solver_name)
+
+    def is_banned(self, solver_name):
+        return self.r.sismember("bans", solver_name)
+
+    def unban(self, solver_name):
+        self.r.srem("bans", solver_name)
+
+    #### timers
 
     def timer_expired(self, name):
         return self.r.get("timers:%s" % name) is None

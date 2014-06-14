@@ -6,6 +6,8 @@ import abc
 class BaseStorage(object):
     __metaclass__ = abc.ABCMeta
 
+    #### unused
+
     @abc.abstractmethod
     def get_current_solver(self):
         pass
@@ -13,6 +15,16 @@ class BaseStorage(object):
     @abc.abstractmethod
     def set_current_solver(self, solver_name):
         pass
+
+    @abc.abstractmethod
+    def get_balance(self, solver_name):
+        pass
+
+    @abc.abstractmethod
+    def set_balance(self, solver_name, value):
+        pass
+
+    #### counters
 
     @abc.abstractmethod
     def get_uses(self, solver_name):
@@ -30,13 +42,7 @@ class BaseStorage(object):
     def incr_fails(self, solver_name):
         pass
 
-    @abc.abstractmethod
-    def get_balance(self, solver_name):
-        pass
-
-    @abc.abstractmethod
-    def set_balance(self, solver_name, value):
-        pass
+    #### block
 
     @abc.abstractmethod
     def block(self, solver_name, seconds):
@@ -45,6 +51,20 @@ class BaseStorage(object):
     @abc.abstractmethod
     def is_blocked(self, solver_name):
         pass
+
+    @abc.abstractmethod
+    def ban(self, solver_name):
+        pass
+
+    @abc.abstractmethod
+    def is_banned(self, solver_name):
+        pass
+
+    @abc.abstractmethod
+    def unban(self, solver_name):
+        pass
+
+    #### timer
 
     @abc.abstractmethod
     def start_timer(self, name, seconds):

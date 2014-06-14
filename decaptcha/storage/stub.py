@@ -12,12 +12,23 @@ class StubStorage(BaseStorage):
         self._balances = {}
         self._current_solver = None
         self._timer_ends = {}
+        self._banned = set()
+
+    #### unused
 
     def set_current_solver(self, solver_name):
         self._current_solver = solver_name
 
     def get_current_solver(self):
         return self._current_solver
+
+    def get_balance(self, solver_name):
+        return self._balances.get(solver_name)
+
+    def set_balance(self, solver_name, value):
+        self._balances[solver_name] = value
+
+    #### counters
 
     def incr_uses(self, solver_name):
         self._uses[solver_name] += 1
@@ -31,11 +42,7 @@ class StubStorage(BaseStorage):
     def get_fails(self, solver_name):
         return self._fails[solver_name]
 
-    def get_balance(self, solver_name):
-        return self._balances.get(solver_name)
-
-    def set_balance(self, solver_name, value):
-        self._balances[solver_name] = value
+    #### blocks
 
     def is_blocked(self, solver_name):
         return not self.timer_expired("bans:%s" % solver_name)
@@ -44,6 +51,18 @@ class StubStorage(BaseStorage):
         self.start_timer("bans:%s" % solver_name, seconds)
         self._uses[solver_name] = 0
         self._fails[solver_name] = 0
+
+    def ban(self, solver_name):
+        self._banned.add(solver_name)
+
+    def is_banned(self, solver_name):
+        return solver_name in self._banned
+
+    def unban(self, solver_name):
+        if self.is_banned(solver_name):
+            self._banned.remove(solver_name)
+
+    #### timers
 
     def start_timer(self, name, seconds):
         self._timer_ends[name] = time.time() + seconds

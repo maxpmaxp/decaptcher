@@ -70,6 +70,18 @@ def test_solvers_blocking(storage):
     assert not storage.is_blocked('one')
 
 
+def test_bans(storage):
+    s = "some solver"
+    assert not storage.is_banned(s)
+
+    storage.ban(s)
+    assert storage.is_banned(s)
+    assert not storage.is_blocked(s)
+
+    storage.unban(s)
+    assert not storage.is_banned(s)
+
+
 def test_timers(storage):
     duration = 1
     assert storage.timer_expired('first')
