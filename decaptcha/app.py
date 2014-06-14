@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 import logging.config
 
-from bottle import Bottle, run, request, abort
+from bottle import Bottle, run, request, abort, auth_basic
 
 import settings
 import solvers.api as solvers
@@ -22,6 +22,8 @@ log = logging.getLogger('app')
 def check_user(username, password):
     user = settings.APP_ACCESS
     return username == user['username'] and password == user['password']
+
+requires_auth = auth_basic(check_user)
 
 
 def check_solver_name(name):
