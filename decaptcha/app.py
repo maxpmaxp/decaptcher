@@ -120,6 +120,7 @@ def ban(solver):
     """
     Перманентная блокировка сервиса-расшифровшика 'solver'
     """
+    check_solver_name(solver)
     storage = RedisStorage()
     storage.ban(solver)
 
@@ -130,6 +131,7 @@ def unban(solver):
     """
     Разблокировка сервиса-расшифровшика 'solver'
     """
+    check_solver_name(solver)
     storage = RedisStorage()
     storage.unban(solver)
 

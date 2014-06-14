@@ -143,12 +143,15 @@ def test_solve_captcha(app):
     reset_mocks(locals())
 
 
-def test_ban_unban(app):
+@patch("app.check_solver_name")
+def test_ban_unban(check_solver_name, app):
     storage = _patch("app.RedisStorage")()
 
-    s = 'antigate'
+    s = 'some_service'
     app.get('/ban/%s' % s)
     storage.ban.assert_called_once_with(s)
+    check_solver_name.assert_called_with(s)
 
     app.get('/unban/%s' % s)
     storage.unban.assert_called_once_with(s)
+    check_solver_name.assert_called_with(s)
