@@ -9,7 +9,7 @@ import settings
 from solvers.de_captcher import ResultCodes
 from errors import SolverError
 from app import (
-    decaptcher_response, validate_user, check_request,
+    decaptcher_response, check_user, check_request,
     check_solver_name, app as wsgi_app)
 
 
@@ -28,12 +28,12 @@ def test_decaptcher_response():
     assert result == ResultCodes.GENERAL
 
 
-def test_validate_user():
+def test_check_user():
     correct_username = settings.APP_ACCESS['username']
     correct_password = settings.APP_ACCESS['password']
-    assert not validate_user(correct_username, correct_password + '111')
-    assert not validate_user(correct_username + '111', correct_password)
-    assert validate_user(correct_username, correct_password)
+    assert not check_user(correct_username, correct_password + '111')
+    assert not check_user(correct_username + '111', correct_password)
+    assert check_user(correct_username, correct_password)
 
 
 class FakeRequest(object):
@@ -47,9 +47,9 @@ def test_check_solver_name():
     pytest.raises(HTTPError, check_solver_name, "not_existing")
 
 
-@patch("app.validate_user")
+@patch("app.check_user")
 @patch("app.check_solver_name")
-def test_check_request(check_solver_name, validate_user):
+def test_check_request(check_solver_name, check_user):
     username = settings.APP_ACCESS['username']
     password = settings.APP_ACCESS['password']
     pict = '\xc9\x87\x8cWD6$X\x1er\xaeB`\x82'
@@ -90,7 +90,7 @@ def test_check_request(check_solver_name, validate_user):
     good_request = FakeRequest(post=good_post_data)
     assert check_request(good_request) is None
     assert not check_solver_name.called
-    validate_user.assert_called_with(username, password)
+    check_user.assert_called_with(username, password)
 
     solver = 'solver_name'
     request = FakeRequest(good_post_data, {'upstream_service': solver})

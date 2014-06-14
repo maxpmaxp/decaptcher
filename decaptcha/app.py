@@ -19,10 +19,9 @@ logging.config.dictConfig(settings.LOGGING)
 log = logging.getLogger('app')
 
 
-def validate_user(username, password):
-    correct_username = (username == settings.APP_ACCESS['username'])
-    correct_password = (password == settings.APP_ACCESS['password'])
-    return correct_username and correct_password
+def check_user(username, password):
+    user = settings.APP_ACCESS
+    return username == user['username'] and password == user['password']
 
 
 def check_solver_name(name):
