@@ -167,3 +167,15 @@ def test_solve_captcha():
     assert not solvers.get_next.called
     assert decaptcher_response.called
     reset_mocks(locals())
+
+
+def test_ban_unban():
+    storage = _patch("app.RedisStorage")()
+    app = TestApp(wsgi_app)
+
+    s = 'antigate'
+    app.get('/ban/%s' % s)
+    storage.ban.assert_called_once_with(s)
+
+    app.get('/unban/%s' % s)
+    storage.unban.assert_called_once_with(s)

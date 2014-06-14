@@ -114,5 +114,23 @@ def solve_captcha():
     return decaptcher_response(captcha_code=code)
 
 
+@app.route('/ban/<solver>')
+def ban(solver):
+    """
+    Перманентная блокировка сервиса-расшифровшика 'solver'
+    """
+    storage = RedisStorage()
+    storage.ban(solver)
+
+
+@app.route('/unban/<solver>')
+def unban(solver):
+    """
+    Разблокировка сервиса-расшифровшика 'solver'
+    """
+    storage = RedisStorage()
+    storage.unban(solver)
+
+
 if __name__ == '__main__':
     run(app, host='localhost', port=8020, reloader=True, debug=True)
