@@ -50,47 +50,16 @@ def test_check_solver_name():
 @patch("app.check_user")
 @patch("app.check_solver_name")
 def test_check_request(check_solver_name, check_user):
-    username = settings.APP_ACCESS['username']
-    password = settings.APP_ACCESS['password']
-    pict = '\xc9\x87\x8cWD6$X\x1er\xaeB`\x82'
-
-    good_post_data = {
-        'username': username,
-        'password': password,
-        'pict': pict,
-    }
-    bad_post_data = [
-        # empty
-        {},
-        # no password
-        {
-            'username': username,
-            'pict': pict
-        },
-        # no username
-        {
-            'password': password,
-            'pict': pict
-        },
-        # no pict
-        {
-            'username': username,
-            'password': password
-        },
-    ]
-
     # если проверка проходит, то возвращается None,
-    # иначе - строку с описанием ошибки
-    # (булево значение непустой строки True)
+    # иначе - строка с описанием ошибки
+    # (булево значение непустой строки = True)
+    bad_request = FakeRequest(post={})
+    assert check_request(bad_request)
 
-    for data in bad_post_data:
-        bad_request = FakeRequest(post=data)
-        assert check_request(bad_request)
-
+    good_post_data = {'pict': '\xc9'}
     good_request = FakeRequest(post=good_post_data)
     assert check_request(good_request) is None
     assert not check_solver_name.called
-    check_user.assert_called_with(username, password)
 
     solver = 'solver_name'
     request = FakeRequest(good_post_data, {'upstream_service': solver})
@@ -103,7 +72,7 @@ def _patch(path, *args, **kw):
 
 
 @patch.dict("settings.BLOCK_PERIODS", {"errcode": 7})
-def test_solve_captcha():
+def test_solve_captcha(app):
     def reset_mocks(locals_):
         for obj_name, obj in locals_.items():
             if not obj_name.startswith('_') and isinstance(obj, MagicMock):
@@ -122,7 +91,6 @@ def test_solve_captcha():
             = solvers.get_next.return_value.__getitem__.return_value\
             = solve
 
-    app = TestApp(wsgi_app)
     some_data = {'pict': 'pict_data'}
 
     # моделирование запроса с невалидными POST-данными
@@ -175,9 +143,8 @@ def test_solve_captcha():
     reset_mocks(locals())
 
 
-def test_ban_unban():
+def test_ban_unban(app):
     storage = _patch("app.RedisStorage")()
-    app = TestApp(wsgi_app)
 
     s = 'antigate'
     app.get('/ban/%s' % s)

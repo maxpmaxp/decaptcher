@@ -33,16 +33,8 @@ def check_solver_name(name):
 
 
 def check_request(request):
-    data = request.POST
     query = request.query
-    try:
-        user = (data['username'], data['password'])
-    except KeyError:
-        return u"Нет параметров 'username', 'password' в POST-данных"
-
-    if not validate_user(*user):
-        return u"Неверный логин/пароль (%s/%s)" % user
-    elif 'pict' not in data:
+    if 'pict' not in request.POST:
         return u"Нет параметра 'pict' в POST-данных"
     elif query:
         service_name = query.get("upstream_service")
@@ -78,6 +70,7 @@ def start_expired_timers(storage):
 #         и передавать дальше в виде бинарника.
 #     или бинарная строка
 @app.route('/', method='POST')
+@requires_auth
 def solve_captcha():
     """
     В POST данных нас интересуют username, password, pict.
@@ -122,6 +115,7 @@ def solve_captcha():
 
 
 @app.route('/ban/<solver>')
+@requires_auth
 def ban(solver):
     """
     Перманентная блокировка сервиса-расшифровшика 'solver'
@@ -131,6 +125,7 @@ def ban(solver):
 
 
 @app.route('/unban/<solver>')
+@requires_auth
 def unban(solver):
     """
     Разблокировка сервиса-расшифровшика 'solver'
