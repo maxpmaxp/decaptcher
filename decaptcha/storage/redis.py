@@ -25,7 +25,7 @@ class RedisStorage(BaseStorage):
         но только при условии, что сервис не заблокирован.
         """
         with self.r.pipeline() as pipe:
-            pipe.watch("blocked:" + solver_name)
+            pipe.watch("blocks:" + solver_name)
             if not self.is_blocked(solver_name):
                 pipe.multi()
                 pipe.hincrby(counter_name, solver_name, 1)
@@ -59,12 +59,12 @@ class RedisStorage(BaseStorage):
         Блокировка сервиса 'solver_name' на указанное число секунд
         и обнуление счетчиков для него.
         """
-        self.start_timer("bans:%s" % solver_name, seconds)
+        self.start_timer("blocks:%s" % solver_name, seconds)
         self.r.hset("counters:uses", solver_name, 0)
         self.r.hset("counters:fails", solver_name, 0)
 
     def is_blocked(self, solver_name):
-        return not self.timer_expired("bans:%s" % solver_name)
+        return not self.timer_expired("blocks:%s" % solver_name)
 
     def timer_expired(self, name):
         return self.r.get("timers:%s" % name) is None
