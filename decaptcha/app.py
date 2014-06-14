@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 import logging.config
 
-from bottle import Bottle, run, request
+from bottle import Bottle, run, request, abort
 
 import settings
 import solvers.api as solvers
@@ -25,6 +25,12 @@ def validate_user(username, password):
     return correct_username and correct_password
 
 
+def check_solver_name(name):
+    if name not in settings.Solvers.names:
+        abort(400, u"Неизвестный upstream_service %s" % name)
+    return None
+
+
 def check_request(request):
     data = request.POST
     query = request.query
@@ -41,8 +47,8 @@ def check_request(request):
         service_name = query.get("upstream_service")
         if not service_name:
             return u"%s вместо 'upstream_service' в запросе" %  query.keys()
-        elif service_name not in settings.Solvers.names:
-            return u"Неизвестный upstream_service %s" % service_name
+        else:
+            return check_solver_name(service_name)
     else:
         return None
 
