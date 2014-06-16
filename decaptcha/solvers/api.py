@@ -4,6 +4,7 @@
 """
 from __future__ import absolute_import
 
+import settings
 from settings import Solvers
 from .api_list import get_api
 
@@ -33,9 +34,14 @@ _SOLVERS_SORTED_BY_RANK = [
 LOWEST_SOLVER = _SOLVERS_SORTED_BY_RANK[-1]['name']
 
 
+def is_banned(solver_name):
+    return solver_name in settings.BANNED_SOLVERS
+
+
 def get_highest_notblocked(storage):
     for solver in _SOLVERS_SORTED_BY_RANK:
-        if not storage.is_blocked(solver['name']):
+        s = solver['name']
+        if not is_banned(s) and not storage.is_blocked(s):
             return solver
     return _SOLVERS_SORTED_BY_RANK[-1]
 

@@ -70,15 +70,6 @@ class RedisStorage(BaseStorage):
     def is_blocked(self, solver_name):
         return not self.timer_expired("blocks:%s" % solver_name)
 
-    def ban(self, solver_name):
-        self.r.sadd("bans", solver_name)
-
-    def is_banned(self, solver_name):
-        return self.r.sismember("bans", solver_name)
-
-    def unban(self, solver_name):
-        self.r.srem("bans", solver_name)
-
     #### timers
 
     def timer_expired(self, name):

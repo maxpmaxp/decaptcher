@@ -52,18 +52,6 @@ class BaseStorage(object):
     def is_blocked(self, solver_name):
         pass
 
-    @abc.abstractmethod
-    def ban(self, solver_name):
-        pass
-
-    @abc.abstractmethod
-    def is_banned(self, solver_name):
-        pass
-
-    @abc.abstractmethod
-    def unban(self, solver_name):
-        pass
-
     #### timer
 
     @abc.abstractmethod

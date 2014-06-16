@@ -71,12 +71,14 @@ def _patch(path, *args, **kw):
     return patch(path, *args, **kw).start()
 
 
+def reset_mocks(locals_):
+    for obj_name, obj in locals_.items():
+        if not obj_name.startswith('_') and isinstance(obj, MagicMock):
+            obj.reset_mock()
+
+
 @patch.dict("settings.BLOCK_PERIODS", {"errcode": 7})
 def test_solve_captcha(app):
-    def reset_mocks(locals_):
-        for obj_name, obj in locals_.items():
-            if not obj_name.startswith('_') and isinstance(obj, MagicMock):
-                obj.reset_mock()
 
     check_request = _patch("app.check_request")
     decaptcher_response = _patch("app.decaptcher_response")
@@ -142,17 +144,3 @@ def test_solve_captcha(app):
     assert decaptcher_response.called
     reset_mocks(locals())
     patch.stopall()
-
-
-@patch("app.check_solver_name")
-def test_ban_unban(check_solver_name, app):
-    storage = _patch("app.RedisStorage")()
-
-    s = 'some_service'
-    app.get('/ban/%s' % s)
-    storage.ban.assert_called_once_with(s)
-    check_solver_name.assert_called_with(s)
-
-    app.get('/unban/%s' % s)
-    storage.unban.assert_called_once_with(s)
-    check_solver_name.assert_called_with(s)

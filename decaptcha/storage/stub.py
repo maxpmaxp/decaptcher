@@ -52,16 +52,6 @@ class StubStorage(BaseStorage):
         self._uses[solver_name] = 0
         self._fails[solver_name] = 0
 
-    def ban(self, solver_name):
-        self._banned.add(solver_name)
-
-    def is_banned(self, solver_name):
-        return solver_name in self._banned
-
-    def unban(self, solver_name):
-        if self.is_banned(solver_name):
-            self._banned.remove(solver_name)
-
     #### timers
 
     def start_timer(self, name, seconds):

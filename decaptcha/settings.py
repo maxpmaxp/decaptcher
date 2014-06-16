@@ -64,6 +64,9 @@ class Solvers:
     names = ranks.keys()
 
 
+BANNED_SOLVERS = []
+
+
 class CheckErrors:
     FAILS = 'fails'
     MINBID = 'minbid'
