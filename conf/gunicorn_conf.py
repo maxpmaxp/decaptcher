@@ -3,7 +3,6 @@
 from os.path import dirname, join, abspath
 import multiprocessing
 
-bind = "127.0.0.1:8020"
 worker_class = "gevent"
 loglevel = "info"
 workers = multiprocessing.cpu_count() * 2 + 1
