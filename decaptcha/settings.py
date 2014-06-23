@@ -1,31 +1,42 @@
 # -*- coding: utf-8 -*-
-import os
-from os.path import dirname, join, abspath
+from os.path import dirname, join, abspath, exists
+from ConfigParser import SafeConfigParser, NoOptionError
 
 
-def get_env_setting(setting):
-    """ Get the environment setting or return exception """
+CONF_FILE = '/etc/decaptcher.conf'
+if not exists(CONF_FILE):
+    raise ValueError("Config file %r doesn't exist" % CONF_FILE)
+
+conf = SafeConfigParser()
+conf.read(CONF_FILE)
+
+def get_var(section, option, default=None):
     try:
-        return os.environ[setting]
-    except KeyError:
-        raise ValueError("Set the %s env variable" % setting)
+        return conf.get(section, option)
+    except NoOptionError:
+        if default is not None:
+            return default
+        else:
+            raise
+
 
 APP_ACCESS = {
-    'username': get_env_setting("APP_USERNAME"),
-    'password': get_env_setting("APP_PASSWORD"),
+    'username': get_var('self', 'user'),
+    'password': get_var('self', 'password'),
 }
 
 DE_CAPTCHER_ACCOUNT = {
-    'username': get_env_setting('DE_CAPTCHER_USERNAME'),
-    'password': get_env_setting('DE_CAPTCHER_PASSWORD'),
+    'username': get_var('de_captcher', 'user'),
+    'password': get_var('de_captcher', 'password'),
 }
 
 API_KEYS = {
-    'antigate': get_env_setting('ANTIGATE_API_KEY'),
-    'captchabot': get_env_setting('CAPTCHABOT_API_KEY'),
-    'deathbycaptcha': get_env_setting('DEATHBYCAPTCHA_API_KEY'),
+    'antigate': get_var('antigate', 'api_key'),
+    'captchabot': get_var('captchabot', 'api_key'),
+    'deathbycaptcha': get_var('deathbycaptcha', 'api_key'),
 }
 
+APP_ADDRESS = get_var('common', 'address')
 NET_TIMEOUT = 15
 MAX_ATTEMPTS_TO_SOLVE = 20
 
@@ -87,7 +98,10 @@ REDIS_CONF = {
 
 
 ROOT_DIR = dirname(dirname(abspath(__file__)))
-root = lambda *x: join(ROOT_DIR, *x)
+LOG_DIR = get_var('common', 'logdir', join(ROOT_DIR, 'log'))
+
+if not exists(LOG_DIR):
+    raise ValueError("Log dir %r doesn't exist" % LOG_DIR)
 
 LOGGING = {
     'version': 1,
@@ -107,7 +121,7 @@ LOGGING = {
         'app': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'simple',
-            'filename': root('log/app.log'),
+            'filename': join(LOG_DIR, 'app.log'),
             'maxBytes': 5 * 2**20,  # 5MB
             'backupCount': 3
         },
