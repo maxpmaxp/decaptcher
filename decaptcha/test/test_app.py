@@ -125,6 +125,7 @@ def test_solve_captcha(app):
     assert solvers.get_next.call_count == 1
     assert decaptcher_response.called
     reset_mocks(locals())
+    check_solver.side_effect = None
 
     # моделирование запроса с валидными POST-данными
     # с явным указанием сервиса-расшифровщика
@@ -143,4 +144,23 @@ def test_solve_captcha(app):
     assert not solvers.get_next.called
     assert decaptcher_response.called
     reset_mocks(locals())
+    check_solver.side_effect = None
+
+    # моделирование случая, при котором число попыток
+    # расшифровать капчу превышает допустимое
+    check_request.return_value = None
+    check_solver.return_value = None
+    solve.side_effect = SolverError
+    decaptcher_response.return_value = "resp1"
+    app.post('/', some_data)
+    #
+    assert start_expired_timers.called
+    assert storage.incr_uses.call_count\
+            == storage.incr_fails.call_count\
+            == solve.call_count\
+            == solvers.get_next.call_count\
+            == settings.MAX_ATTEMPTS_TO_SOLVE
+    assert decaptcher_response.called
+    reset_mocks(locals())
+
     patch.stopall()

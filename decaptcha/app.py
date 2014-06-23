@@ -100,7 +100,7 @@ def solve_captcha():
             block_period = settings.BLOCK_PERIODS[error_code]
             storage.block(solver['name'], block_period)
 
-    while True:
+    for _ in range(settings.MAX_ATTEMPTS_TO_SOLVE):
         try:
             storage.incr_uses(solver['name'])
             code = solver['cb'](pict)
@@ -109,6 +109,8 @@ def solve_captcha():
             storage.incr_fails(solver['name'])
             log.error(u"[%s] Ошибка: %s", solver['name'], error.message)
             solver = solvers.get_next(solver['name'])
+    else:
+        return decaptcher_response(result_code=ResultCodes.GENERAL)
 
     log.debug(u"[%s] Код капчи %s", solver['name'], code)
     return decaptcher_response(captcha_code=code)
