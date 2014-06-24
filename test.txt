@@ -1,4 +1,4 @@
--r base.txt
+.
 pytest==2.5.2
 mock==1.0.1
 webtest==2.0.15
