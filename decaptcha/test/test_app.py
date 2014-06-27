@@ -3,14 +3,13 @@
 import pytest
 from bottle import FormsDict, HTTPError
 from mock import patch, MagicMock
-from webtest import TestApp
 
 import settings
 from solvers.de_captcher import ResultCodes
 from errors import SolverError
 from app import (
     decaptcher_response, check_user, check_request,
-    check_solver_name, app as wsgi_app)
+    check_solver_name)
 
 
 def test_decaptcher_response():
@@ -50,13 +49,28 @@ def test_check_solver_name():
 @patch("app.check_user")
 @patch("app.check_solver_name")
 def test_check_request(check_solver_name, check_user):
+    username = 'some user'
+    password = 'some passwd'
+    pict = '\xc9'
+    bad_post_data = [
+        {}, # empty
+        {'username': username, 'pict': pict}, # no password
+        {'password': password, 'pict': pict}, # no username
+        {'username': username, 'password': password}, # no pict
+    ]
+    good_post_data = {
+        'username': username,
+        'password': password,
+        'pict': pict,
+    }
+
     # если проверка проходит, то возвращается None,
     # иначе - строка с описанием ошибки
     # (булево значение непустой строки = True)
-    bad_request = FakeRequest(post={})
-    assert check_request(bad_request)
+    for data in bad_post_data:
+        bad_request = FakeRequest(post=data)
+        assert check_request(bad_request)
 
-    good_post_data = {'pict': '\xc9'}
     good_request = FakeRequest(post=good_post_data)
     assert check_request(good_request) is None
     assert not check_solver_name.called

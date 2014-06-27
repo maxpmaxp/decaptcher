@@ -16,8 +16,13 @@ def stub_storage():
 
 
 @pytest.fixture
-def app():
+def auth_app():
     user = settings.APP_ACCESS
     test_app = webtest.TestApp(our_app)
     test_app.authorization = ('Basic', (user['username'], user['password']))
     return test_app
+
+
+@pytest.fixture
+def app():
+    return webtest.TestApp(our_app)

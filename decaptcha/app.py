@@ -23,6 +23,7 @@ def check_user(username, password):
     user = settings.APP_ACCESS
     return username == user['username'] and password == user['password']
 
+# не используется
 requires_auth = auth_basic(check_user)
 
 
@@ -33,8 +34,16 @@ def check_solver_name(name):
 
 
 def check_request(request):
+    data = request.POST
+    try:
+        user = (data['username'], data['password'])
+    except KeyError:
+        return u"Нет параметров 'username', 'password' в POST-данных"
+    if not check_user(*user):
+        return u"Неверный логин/пароль (%s/%s)" % user
+
     query = request.query
-    if 'pict' not in request.POST:
+    if 'pict' not in data:
         return u"Нет параметра 'pict' в POST-данных"
     elif query:
         service_name = query.get("upstream_service")
@@ -70,7 +79,6 @@ def start_expired_timers(storage):
 #         и передавать дальше в виде бинарника.
 #     или бинарная строка
 @app.route('/', method='POST')
-@requires_auth
 def solve_captcha():
     """
     В POST данных нас интересуют username, password, pict.

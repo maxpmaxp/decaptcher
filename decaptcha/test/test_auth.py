@@ -12,7 +12,8 @@ def ping():
     return 'pong'
 
 
-def test_requires_auth(app):
+def test_requires_auth(auth_app):
+    app = auth_app
     auth = app.authorization
     app.authorization = None
     pytest.raises(webtest.app.AppError, app.get, '/ping')
