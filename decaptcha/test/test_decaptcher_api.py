@@ -49,3 +49,22 @@ def test_post(requests_post, solver_api):
     requests_post.return_value = FakeResponse(status_code=500)
     pytest.raises(DecaptcherError, "solver_api._post(some_data)")
     assert requests_post.called
+
+
+@patch.object(DecaptcherAPI, '_parse_solver_response')
+@patch.object(DecaptcherAPI, '_post')
+def test_using_pict_type(_post, _parse_solver_response, solver_api):
+    pict = "some_captcha_img"
+    default_pict_type = "0"
+    another_pict_type = "another"
+
+    data = {"function": "picture2",
+            "pict_to": "0",
+            "pict": pict,
+            "pict_type": default_pict_type}
+    solver_api.solve(pict)
+    _post.assert_called_with(data)
+
+    data["pict_type"] = another_pict_type
+    solver_api.solve(pict, pict_type=another_pict_type)
+    _post.assert_called_with(data)

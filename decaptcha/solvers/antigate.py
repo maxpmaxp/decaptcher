@@ -26,7 +26,7 @@ class BaseAntigateAPI(object):
             grab_config={'connect_timeout': settings.NET_TIMEOUT},
         )
 
-    def solve(self, captcha_img):
+    def solve(self, captcha_img, **kw):
         api = self._api
         captcha_id = api.send(captcha_img, binary=True)
         return api.get(captcha_id)

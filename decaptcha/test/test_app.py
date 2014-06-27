@@ -177,4 +177,16 @@ def test_solve_captcha(app):
     assert decaptcher_response.called
     reset_mocks(locals())
 
+    # проверяем, что параметры "pict_type" и "pict" передаются в расшифровщик
+    some_data = {'pict': 'pict_data', 'pict_type': 'some_type'}
+    check_request.return_value = None
+    check_solver.return_value = None
+    solve.side_effect = None
+    decaptcher_response.return_value = "resp1"
+    app.post('/', some_data)
+    #
+    solve.assert_called_with(some_data['pict'],
+                             pict_type=some_data['pict_type'])
+    reset_mocks(locals())
+
     patch.stopall()

@@ -92,6 +92,7 @@ def solve_captcha():
         return decaptcher_response(result_code=ResultCodes.BAD_PARAMS)
 
     pict = request.POST['pict']
+    pict_type = request.POST.get('pict_type')
     storage = RedisStorage()
     start_expired_timers(storage)
 
@@ -111,7 +112,7 @@ def solve_captcha():
     for _ in range(settings.MAX_ATTEMPTS_TO_SOLVE):
         try:
             storage.incr_uses(solver['name'])
-            code = solver['cb'](pict)
+            code = solver['cb'](pict, pict_type=pict_type)
             break
         except SolverError as error:
             storage.incr_fails(solver['name'])
