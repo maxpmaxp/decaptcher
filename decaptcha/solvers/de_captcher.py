@@ -70,7 +70,7 @@ class DecaptcherAPI(object):
     def solve(self, captcha_img, **kw):
         data = {"function": "picture2",
                 "pict_to": "0",
-                "pict_type": kw.pop("pict_type", "0"),
+                "pict_type": kw.get("pict_type") or "0",
                 "pict": captcha_img}
         response = self._post(data)
         return self._parse_solver_response(response)

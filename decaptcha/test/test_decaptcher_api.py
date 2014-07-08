@@ -62,9 +62,15 @@ def test_using_pict_type(_post, _parse_solver_response, solver_api):
             "pict_to": "0",
             "pict": pict,
             "pict_type": default_pict_type}
+    # если pict_type не передается или он равен None,
+    # то используется "0" - значение по умолчанию
+    solver_api.solve(pict, pict_type=None)
+    _post.assert_called_with(data)
+
     solver_api.solve(pict)
     _post.assert_called_with(data)
 
+    # если же pict_type != None, то используется переданное значение
     data["pict_type"] = another_pict_type
     solver_api.solve(pict, pict_type=another_pict_type)
     _post.assert_called_with(data)
