@@ -43,10 +43,15 @@ class DecaptcherAPI(object):
             self._account = account
 
 
-    def _post(self, data):
+    def _post(self, data, files=None):
         data.update(self._account)
-        response = requests.post(self._url, data=data,
-                                 timeout=settings.NET_TIMEOUT)
+        request_params = {
+            'url': self._url,
+            'data': data,
+            'files': files,
+            'timeout': settings.NET_TIMEOUT,
+        }
+        response = requests.post(**request_params)
         if response.status_code != 200:
             raise DecaptcherError("%s HTTP status code" % response.status_code)
         return response
@@ -67,12 +72,12 @@ class DecaptcherAPI(object):
             raise DecaptcherError("Unknown error code: %r" % error_code)
 
 
-    def solve(self, captcha_img, **kw):
+    def solve(self, captcha_file, **kw):
         data = {"function": "picture2",
-                "pict_to": "0",
                 "pict_type": kw.get("pict_type") or "0",
-                "pict": captcha_img}
-        response = self._post(data)
+                "pict_to": "0",
+                "submit": "Send"}
+        response = self._post(data, files={'pict': captcha_file})
         return self._parse_solver_response(response)
 
 

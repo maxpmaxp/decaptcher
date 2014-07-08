@@ -3,6 +3,7 @@
 import pytest
 from bottle import FormsDict, HTTPError
 from mock import patch, MagicMock
+from webtest.forms import Upload
 
 import settings
 from solvers.de_captcher import ResultCodes
@@ -36,9 +37,10 @@ def test_check_user():
 
 
 class FakeRequest(object):
-    def __init__(self, post, query=None):
+    def __init__(self, post, query=None, files=None):
         self.POST = FormsDict(**post)
         self.query = FormsDict(query) if query else FormsDict()
+        self.files = FormsDict(files) if files else FormsDict()
 
 
 def test_check_solver_name():
@@ -51,32 +53,31 @@ def test_check_solver_name():
 def test_check_request(check_solver_name, check_user):
     username = 'some user'
     password = 'some passwd'
-    pict = '\xc9'
-    bad_post_data = [
-        {}, # empty
-        {'username': username, 'pict': pict}, # no password
-        {'password': password, 'pict': pict}, # no username
-        {'username': username, 'password': password}, # no pict
+    files = {'pict': Upload('captcha.png', '\xc9')}
+    bad_args = [
+        {'post': {}}, # empty
+        {'post': {'username': username}, 'files': files}, # no password
+        {'post': {'password': password}, 'files': files}, # no username
+        {'post': {'username': username, 'password': password}}, # no pict
     ]
-    good_post_data = {
-        'username': username,
-        'password': password,
-        'pict': pict,
+    good_args = {
+        'post': {'username': username, 'password': password},
+        'files': files
     }
 
     # если проверка проходит, то возвращается None,
     # иначе - строка с описанием ошибки
     # (булево значение непустой строки = True)
-    for data in bad_post_data:
-        bad_request = FakeRequest(post=data)
+    for args in bad_args:
+        bad_request = FakeRequest(**args)
         assert check_request(bad_request)
 
-    good_request = FakeRequest(post=good_post_data)
+    good_request = FakeRequest(**good_args)
     assert check_request(good_request) is None
     assert not check_solver_name.called
 
     solver = 'solver_name'
-    request = FakeRequest(good_post_data, {'upstream_service': solver})
+    request = FakeRequest(query={'upstream_service': solver}, **good_args)
     check_request(request)
     check_solver_name.assert_called_with(solver)
 
@@ -107,7 +108,8 @@ def test_solve_captcha(app):
             = solvers.get_next.return_value.__getitem__.return_value\
             = solve
 
-    some_data = {'pict': 'pict_data'}
+    pict = Upload('captcha.png', 'picture_binary_data')
+    some_data = {'pict': pict}
 
     # моделирование запроса с невалидными POST-данными
     check_request.return_value = "error description"
@@ -178,15 +180,14 @@ def test_solve_captcha(app):
     reset_mocks(locals())
 
     # проверяем, что параметры "pict_type" и "pict" передаются в расшифровщик
-    some_data = {'pict': 'pict_data', 'pict_type': 'some_type'}
+    some_data = {'pict': pict, 'pict_type': 'some_type'}
     check_request.return_value = None
     check_solver.return_value = None
     solve.side_effect = None
     decaptcher_response.return_value = "resp1"
     app.post('/', some_data)
     #
-    solve.assert_called_with(some_data['pict'],
-                             pict_type=some_data['pict_type'])
+    assert solve.call_args[1]['pict_type'] == some_data['pict_type']
     reset_mocks(locals())
 
     patch.stopall()

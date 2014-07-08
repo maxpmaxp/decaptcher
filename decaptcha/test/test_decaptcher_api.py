@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from StringIO import StringIO
 
 import pytest
 from mock import patch
@@ -54,23 +55,25 @@ def test_post(requests_post, solver_api):
 @patch.object(DecaptcherAPI, '_parse_solver_response')
 @patch.object(DecaptcherAPI, '_post')
 def test_using_pict_type(_post, _parse_solver_response, solver_api):
-    pict = "some_captcha_img"
+    pict = StringIO("captcha img data")
+    pict.name = 'captcha.png'
     default_pict_type = "0"
     another_pict_type = "another"
 
     data = {"function": "picture2",
             "pict_to": "0",
-            "pict": pict,
+            "submit": "Send",
             "pict_type": default_pict_type}
+    files = {"pict": pict}
     # если pict_type не передается или он равен None,
     # то используется "0" - значение по умолчанию
     solver_api.solve(pict, pict_type=None)
-    _post.assert_called_with(data)
+    _post.assert_called_with(data, files=files)
 
     solver_api.solve(pict)
-    _post.assert_called_with(data)
+    _post.assert_called_with(data, files=files)
 
     # если же pict_type != None, то используется переданное значение
     data["pict_type"] = another_pict_type
     solver_api.solve(pict, pict_type=another_pict_type)
-    _post.assert_called_with(data)
+    _post.assert_called_with(data, files=files)

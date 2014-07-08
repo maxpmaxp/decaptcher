@@ -43,8 +43,8 @@ def check_request(request):
         return u"Неверный логин/пароль (%s/%s)" % user
 
     query = request.query
-    if 'pict' not in data:
-        return u"Нет параметра 'pict' в POST-данных"
+    if 'pict' not in request.files:
+        return u"'pict' должен быть file-upload"
     elif query:
         service_name = query.get("upstream_service")
         if not service_name:
@@ -71,13 +71,6 @@ def start_expired_timers(storage):
     storage.start_expired_timer("minbid", settings.MINBID_CHECK_INTERVAL)
 
 
-# TODO: передавать pict в нужном для API формате.
-# TODO: добавить проверку значения 'pict',
-# но сперва нужно определиться с тем, что мы ожидаем:
-#     или file-like объект
-#         в этом случае можно прочитывать его
-#         и передавать дальше в виде бинарника.
-#     или бинарная строка
 @app.route('/', method='POST')
 def solve_captcha():
     """
@@ -91,7 +84,7 @@ def solve_captcha():
         log.error(error)
         return decaptcher_response(result_code=ResultCodes.BAD_PARAMS)
 
-    pict = request.POST['pict']
+    pict = request.files['pict'].file
     pict_type = request.POST.get('pict_type')
     storage = RedisStorage()
     start_expired_timers(storage)
