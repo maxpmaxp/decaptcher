@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export PYTHONUNBUFFERED=true
 ENV="/webapps/decaptcha"
 PROJECT="$ENV/proj"
 
