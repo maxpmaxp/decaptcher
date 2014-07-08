@@ -1,13 +1,16 @@
 import sys
-from os.path import dirname
+from os.path import dirname, join
 sys.path.insert(0, dirname(dirname(__file__)))
 
 import pytest
 import webtest
 
 import settings
+settings.LOGGING['handlers']['app']['filename'] = join(settings.LOG_DIR, 'test.log')
+
 from storage.stub import StubStorage
 from app import app as our_app
+
 
 
 @pytest.fixture
