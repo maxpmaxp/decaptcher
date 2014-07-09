@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+from requests.exceptions import Timeout, ConnectionError
 
 import settings
 from errors import DecaptcherError
@@ -51,7 +52,11 @@ class DecaptcherAPI(object):
             'files': files,
             'timeout': settings.NET_TIMEOUT,
         }
-        response = requests.post(**request_params)
+        try:
+            response = requests.post(**request_params)
+        except (Timeout, ConnectionError) as err:
+            raise DecaptcherError(err)
+
         if response.status_code != 200:
             raise DecaptcherError("%s HTTP status code" % response.status_code)
         return response
