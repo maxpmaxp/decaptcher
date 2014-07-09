@@ -19,16 +19,15 @@ def get_var(section, option, default=None):
         else:
             raise
 
+def get_account(service):
+    return {'username': get_var(service, 'user'),
+            'password': get_var(service, 'password')}
 
-APP_ACCESS = {
-    'username': get_var('self', 'user'),
-    'password': get_var('self', 'password'),
-}
 
-DE_CAPTCHER_ACCOUNT = {
-    'username': get_var('de_captcher', 'user'),
-    'password': get_var('de_captcher', 'password'),
-}
+APP_ACCESS = get_account('self')
+
+ACCOUNTS = {s: get_account(s) for s in
+            ('de_captcher', 'captchabot', 'deathbycaptcha')}
 
 API_KEYS = {
     'antigate': get_var('antigate', 'api_key'),

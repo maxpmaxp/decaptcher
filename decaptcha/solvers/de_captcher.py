@@ -34,7 +34,7 @@ class ResultCodes:
 
 class DecaptcherAPI(object):
     url = "http://poster.de-captcher.com/"
-    account = settings.DE_CAPTCHER_ACCOUNT
+    account = settings.ACCOUNTS['de_captcher']
 
     def __init__(self, url=None, account=None):
         if url:
