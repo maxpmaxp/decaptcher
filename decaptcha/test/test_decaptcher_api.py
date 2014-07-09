@@ -36,12 +36,12 @@ def error_response(request):
 
 def test_parse_bad_solver_response(solver_api, error_response):
     pytest.raises(DecaptcherError,
-                  "solver_api._parse_solver_response(error_response)")
+                  "solver_api._process_solver_response(error_response)")
 
 
 def test_parse_good_solver_response(solver_api):
     resp = FakeResponse(content='0|1|2|3|4|captchacode')
-    assert solver_api._parse_solver_response(resp) == 'captchacode'
+    assert solver_api._process_solver_response(resp) == 'captchacode'
 
 
 @patch("requests.post")
@@ -52,9 +52,9 @@ def test_post(requests_post, solver_api):
     assert requests_post.called
 
 
-@patch.object(DecaptcherAPI, '_parse_solver_response')
+@patch.object(DecaptcherAPI, '_process_solver_response')
 @patch.object(DecaptcherAPI, '_post')
-def test_using_pict_type(_post, _parse_solver_response, solver_api):
+def test_using_pict_type(_post, _process_solver_response, solver_api):
     pict = StringIO("captcha img data")
     pict.name = 'captcha.png'
     default_pict_type = "0"

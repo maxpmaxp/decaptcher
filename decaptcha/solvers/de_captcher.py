@@ -33,20 +33,20 @@ class ResultCodes:
 
 
 class DecaptcherAPI(object):
-    _url = "http://poster.de-captcher.com/"
-    _account = settings.DE_CAPTCHER_ACCOUNT
+    url = "http://poster.de-captcher.com/"
+    account = settings.DE_CAPTCHER_ACCOUNT
 
     def __init__(self, url=None, account=None):
         if url:
-            self._url = url
+            self.url = url
         if account:
-            self._account = account
+            self.account = account
 
 
     def _post(self, data, files=None):
-        data.update(self._account)
+        data.update(self.account)
         request_params = {
-            'url': self._url,
+            'url': self.url,
             'data': data,
             'files': files,
             'timeout': settings.NET_TIMEOUT,
@@ -58,14 +58,17 @@ class DecaptcherAPI(object):
 
 
     def _parse_solver_response(self, response):
+        """ Возвращает код ошибки, код капчи из ответа сервера """
         parts = response.content.split("|")
         if len(parts) != 6:
-            raise DecaptcherError("Wrong response format")
-        error_code, captcha_code = parts[0], parts[-1]
+            raise DecaptcherError("Wrong response format: %s" % response.content)
+        return parts[0], parts[-1]
 
+
+    def _process_solver_response(self, response):
+        error_code, captcha_code = self._parse_solver_response(response)
         if error_code == ResultCodes.OK:
             return captcha_code
-
         try:
             raise DecaptcherError(ResultCodes.msg[error_code])
         except KeyError:
@@ -78,7 +81,7 @@ class DecaptcherAPI(object):
                 "pict_to": "0",
                 "submit": "Send"}
         response = self._post(data, files={'pict': captcha_file})
-        return self._parse_solver_response(response)
+        return self._process_solver_response(response)
 
 
     def balance(self):
