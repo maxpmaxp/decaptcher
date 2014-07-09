@@ -84,7 +84,7 @@ def solve_captcha():
         log.error(error)
         return decaptcher_response(result_code=ResultCodes.BAD_PARAMS)
 
-    pict = request.files['pict'].file
+    pict = request.files['pict'].file.read()
     pict_type = request.POST.get('pict_type')
     storage = RedisStorage()
     start_expired_timers(storage)

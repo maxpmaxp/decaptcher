@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from StringIO import StringIO
-
 import pytest
 from mock import patch
 
@@ -55,8 +53,7 @@ def test_post(requests_post, solver_api):
 @patch.object(DecaptcherAPI, '_process_solver_response')
 @patch.object(DecaptcherAPI, '_post')
 def test_using_pict_type(_post, _process_solver_response, solver_api):
-    pict = StringIO("captcha img data")
-    pict.name = 'captcha.png'
+    pict = "iVBORw0KGgo"
     default_pict_type = "0"
     another_pict_type = "another"
 
@@ -64,7 +61,7 @@ def test_using_pict_type(_post, _process_solver_response, solver_api):
             "pict_to": "0",
             "submit": "Send",
             "pict_type": default_pict_type}
-    files = {"pict": pict}
+    files = {"pict": ("captcha.png", pict)}
     # если pict_type не передается или он равен None,
     # то используется "0" - значение по умолчанию
     solver_api.solve(pict, pict_type=None)

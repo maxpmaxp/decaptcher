@@ -75,12 +75,12 @@ class DecaptcherAPI(object):
             raise DecaptcherError("Unknown error code: %r" % error_code)
 
 
-    def solve(self, captcha_file, **kw):
+    def solve(self, captcha_raw, **kw):
         data = {"function": "picture2",
                 "pict_type": kw.get("pict_type") or "0",
                 "pict_to": "0",
                 "submit": "Send"}
-        response = self._post(data, files={'pict': captcha_file})
+        response = self._post(data, files={'pict': ('captcha.png', captcha_raw)})
         return self._process_solver_response(response)
 
 
