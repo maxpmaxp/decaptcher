@@ -2,9 +2,9 @@
 from __future__ import absolute_import
 
 import settings
-from .antigate import BaseAntigateAPI
+from .de_captcher import DecaptcherAPI
 
 
-class DeathbycaptchaAPI(BaseAntigateAPI):
-    api_key = settings.API_KEYS['deathbycaptcha']
-    domain = "api.dbcapi.me"
+class DeathbycaptchaAPI(DecaptcherAPI):
+    account = settings.ACCOUNTS['deathbycaptcha']
+    url = "http://api.dbcapi.me/decaptcher"
