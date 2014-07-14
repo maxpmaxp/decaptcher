@@ -8,10 +8,11 @@ from .base import BaseStorage
 
 
 class RedisStorage(BaseStorage):
+    pool = redis.ConnectionPool(**settings.REDIS_CONF)
 
     def __init__(self):
         super(RedisStorage, self).__init__()
-        self.r = redis.StrictRedis(**settings.REDIS_CONF)
+        self.r = redis.StrictRedis(connection_pool=self.pool)
 
     #### unused
 
