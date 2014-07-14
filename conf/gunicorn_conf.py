@@ -16,5 +16,5 @@ errorlog = join(LOG_DIR, 'gunicorn.error.log')
 loglevel = "info"
 
 bind = APP_ADDRESS
-worker_class = get_var('gunicorn', 'worker_cls', 'sync')
+worker_class = get_var('gunicorn', 'worker_cls', 'gevent')
 workers = multiprocessing.cpu_count() * 2 + 1
