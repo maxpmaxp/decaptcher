@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 from os.path import dirname, join, abspath, exists
 from ConfigParser import SafeConfigParser, NoOptionError
 
+DEBUG = True
 
 CONF_FILE = '/etc/decaptcher.conf'
 if not exists(CONF_FILE):
@@ -27,7 +29,7 @@ def get_account(service):
 APP_ACCESS = get_account('self')
 
 ACCOUNTS = {s: get_account(s) for s in
-            ('de_captcher', 'captchabot', 'deathbycaptcha')}
+            ('de_captcher', 'captchabot', 'deathbycaptcha', 'antigate')}
 
 API_KEYS = {
     'antigate': get_var('antigate', 'api_key'),
@@ -95,7 +97,6 @@ REDIS_CONF = {
     'password': None,
 }
 
-
 ROOT_DIR = dirname(dirname(abspath(__file__)))
 LOG_DIR = get_var('common', 'logdir', join(ROOT_DIR, 'log'))
 
@@ -124,6 +125,13 @@ LOGGING = {
             'maxBytes': 5 * 2**20,  # 5MB
             'backupCount': 3
         },
+        'recharger': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': join(LOG_DIR, 'recharges.log'),
+            'maxBytes': 5 * 2**20,  # 5MB
+            'backupCount': 3
+        },
     },
     'loggers': {
         'app': {
@@ -131,5 +139,39 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'recharger': {
+            'handlers': ['recharger'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     }
 }
+
+### rechargers conf
+
+MIN_BALANCE = 150
+MIN_RECHARGE_AMOUNT = 150
+MAX_RECHARGE_AMOUNT = 300
+CHECK_BALANCE_INTERVAL = int(timedelta(hours=4).total_seconds())
+
+def read_config_section(section, keys):
+    return {key: get_var(section, key) for key in keys}
+
+CARD_USER_KEYS = [
+    'firstname',
+    'lastname',
+    'address',
+    'city',
+    'zipcode',
+    'state',
+    'email',
+]
+CARD_INFO_KEYS = [
+    'number',
+    'expmonth',
+    'expyear',
+    'cvv2',
+    'nameoncard',
+]
+CARD_USER = read_config_section('card_user', CARD_USER_KEYS)
+CARD_INFO = read_config_section('card_info', CARD_INFO_KEYS)

@@ -5,3 +5,9 @@ class SolverError(Exception):
 
 class DecaptcherError(SolverError):
     pass
+
+class RechargerError(Exception):
+    pass
+
+class CaptchaFound(RechargerError):
+    pass

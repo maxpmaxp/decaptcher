@@ -17,5 +17,8 @@ setup(
         redis==2.10.1
         requests==2.3.0
         gunicorn==18.0
+        pyquery==1.2.8
+        retry==0.4.2
+        argh==0.25
     '''),
 )
