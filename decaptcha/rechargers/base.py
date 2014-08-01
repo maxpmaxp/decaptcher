@@ -170,7 +170,6 @@ class RechargerViaAvangate(object):
 
     def get_sum_to_recharge(self):
         """ Return the sum we need to put into balance """
-        return 1
         balance = self.balance_checker()
         if balance > settings.MIN_BALANCE:
             self.log(u"Current balance %s - no need to refill", balance)

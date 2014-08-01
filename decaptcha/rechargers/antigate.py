@@ -30,7 +30,9 @@ class AntigateRecharger(base.RechargerViaAvangate):
     def auto_run(self):
         amount = self.get_sum_to_recharge()
         price = self.data.product_price
-        for _ in range(amount / price):
+        times = int(amount / price)
+        self.log("Run %s times with recharge amount %s", times, price)
+        for _ in range(times):
             self.run(price)
 
     def get_sum_to_recharge(self):

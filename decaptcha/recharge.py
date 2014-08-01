@@ -75,7 +75,7 @@ def main(args):
             log.debug(u"[%s] Timer expired. Run recharger", service)
             recharger = RECHARGERS[service](user, card)
             recharger.auto_run()
-            storage.start_time(recharge_timer, seconds=CHECK_BALANCE_INTERVAL)
+            storage.start_timer(recharge_timer, seconds=CHECK_BALANCE_INTERVAL)
 
 
 if __name__ == '__main__':

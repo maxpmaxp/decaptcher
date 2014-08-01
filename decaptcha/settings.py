@@ -152,7 +152,7 @@ LOGGING = {
 MIN_BALANCE = 150
 MIN_RECHARGE_AMOUNT = 150
 MAX_RECHARGE_AMOUNT = 300
-CHECK_BALANCE_INTERVAL = timedelta(hours=4).total_seconds()
+CHECK_BALANCE_INTERVAL = int(timedelta(hours=4).total_seconds())
 
 def read_config_section(section, keys):
     return {key: get_var(section, key) for key in keys}
