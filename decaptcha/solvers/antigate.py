@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from antigate import AntiGate, AntiGateError
+from grab.error import GrabNetworkError
 
 import settings
 from errors import SolverError
@@ -11,8 +12,8 @@ class MyAntiGate(AntiGate):
     def _go(self, *args, **kw):
         try:
             super(MyAntiGate, self)._go(*args, **kw)
-        except AntiGateError as error:
-            raise SolverError(error.message)
+        except (AntiGateError, GrabNetworkError) as error:
+            raise SolverError(error)
 
 
 class BaseAntigateAPI(object):
