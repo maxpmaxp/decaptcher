@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+import logging
 
 import errors
 import settings
 from settings import Solvers, CheckErrors
 from solvers.api_list import SOLVER_APIS
 from solvers.api import LOWEST_SOLVER
+
+
+log = logging.getLogger('app')
 
 #TODO: удалить функции, связанные с балансом,
 # если также не будут использоваться
@@ -60,8 +64,8 @@ def is_antigate_minbid_ok():
     api = SOLVER_APIS[Solvers.ANTIGATE]
     try:
         minbid = api.minbid()
-    except errors.SolverError:
-        #TODO: log error
+    except errors.SolverError as error:
+        log.error("Minbid check error: %s", error)
         return True
     else:
         return minbid * 1000 <= settings.ANTIGATE_MAX_PRICE
