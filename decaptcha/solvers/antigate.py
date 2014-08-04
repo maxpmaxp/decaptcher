@@ -29,8 +29,11 @@ class BaseAntigateAPI(object):
 
     def solve(self, captcha_raw, **kw):
         api = self._api
-        captcha_id = api.send(captcha_raw, binary=True)
-        return api.get(captcha_id)
+        try:
+            captcha_id = api.send(captcha_raw, binary=True)
+            return api.get(captcha_id)
+        except AntiGateError as error:
+            raise SolverError(error)
 
     def balance(self):
         return self._api.balance()
