@@ -66,11 +66,6 @@ def decaptcher_response(captcha_code=None, result_code=None):
     return "{result_code}|0|0|0|0|{captcha_code}".format(**locals())
 
 
-def start_expired_timers(storage):
-    storage.start_expired_timer("fails", settings.FAILS_CHECK_INTERVAL)
-    storage.start_expired_timer("minbid", settings.MINBID_CHECK_INTERVAL)
-
-
 @app.route('/', method='POST')
 def solve_captcha():
     """
@@ -87,7 +82,6 @@ def solve_captcha():
     pict = request.files['pict'].file.read()
     pict_type = request.POST.get('pict_type')
     storage = RedisStorage()
-    start_expired_timers(storage)
 
     solver_name = request.query.get("upstream_service")
     if solver_name:

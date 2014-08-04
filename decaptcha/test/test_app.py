@@ -97,7 +97,6 @@ def test_solve_captcha(app):
 
     check_request = _patch("app.check_request")
     decaptcher_response = _patch("app.decaptcher_response")
-    start_expired_timers = _patch("app.start_expired_timers")
     solvers = _patch("app.solvers")
     check_solver = _patch("app.check_solver")
     storage = _patch("app.RedisStorage")()
@@ -119,7 +118,6 @@ def test_solve_captcha(app):
     assert check_request.called
     assert decaptcher_response.called
     assert not solve.called
-    assert not start_expired_timers.called
     reset_mocks(locals())
 
     # моделирование запроса с валидными POST-данными
@@ -130,7 +128,6 @@ def test_solve_captcha(app):
     decaptcher_response.return_value = "resp1"
     app.post('/', some_data)
     #
-    assert start_expired_timers.called
     assert solvers.get_highest_notblocked.call_count == 2
     assert not solvers.get_by_name.called
     assert check_solver.call_count == 2
@@ -150,7 +147,6 @@ def test_solve_captcha(app):
     solve.side_effect = ["captchacode2"]
     app.post('/?upstream_service=captchabot', some_data)
     #
-    assert start_expired_timers.called
     assert solvers.get_by_name.called
     assert not solvers.get_highest_notblocked.called
     assert not check_solver.called
@@ -170,7 +166,6 @@ def test_solve_captcha(app):
     decaptcher_response.return_value = "resp1"
     app.post('/', some_data)
     #
-    assert start_expired_timers.called
     assert storage.incr_uses.call_count\
             == storage.incr_fails.call_count\
             == solve.call_count\

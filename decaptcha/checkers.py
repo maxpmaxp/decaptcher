@@ -75,13 +75,17 @@ def check_solver(service_name, storage):
     if service_name == LOWEST_SOLVER:
         return None
 
-    no_uses = not storage.get_uses(service_name)
-    if service_name == Solvers.ANTIGATE\
-            and (no_uses or storage.timer_expired("minbid"))\
-            and not is_antigate_minbid_ok():
-        return CheckErrors.MINBID
+    if service_name == Solvers.ANTIGATE and storage.timer_expired("minbid"):
+        log.debug(u"Запускаем таймер 'minbid'")
+        storage.start_expired_timer("minbid", settings.MINBID_CHECK_INTERVAL)
+        if not is_antigate_minbid_ok():
+            log.debug(u"[%s] Minbid высок", service_name)
+            return CheckErrors.MINBID
 
-    if storage.timer_expired("fails")\
-            and not is_fails_percentage_ok(service_name, storage):
-        return CheckErrors.FAILS
+    if storage.timer_expired("fails"):
+        log.debug(u"Запускаем таймер 'fails'")
+        storage.start_expired_timer("fails", settings.FAILS_CHECK_INTERVAL)
+        if not is_fails_percentage_ok(service_name, storage):
+            log.debug(u"[%s] Превышен процент ошибок", service_name)
+            return CheckErrors.FAILS
     return None

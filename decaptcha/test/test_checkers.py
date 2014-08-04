@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import time
 
-from mock import patch, DEFAULT
+from mock import patch, MagicMock, DEFAULT
 
 import settings
 from settings import CheckErrors
@@ -14,6 +13,12 @@ eps = 0.0001
 solver_name = settings.Solvers.ANTIGATE
 settings.MAX_COSTS[solver_name] = max_delta = 1
 antigate_api = SOLVER_APIS[solver_name]
+
+
+def reset_mocks(locals_):
+    for obj_name, obj in locals_.items():
+        if not obj_name.startswith('_') and isinstance(obj, MagicMock):
+            obj.reset_mock()
 
 
 # TODO: удалить два теста ниже при удалении других balance-функций
@@ -43,19 +48,6 @@ def test_is_service_expensive(balance, stub_storage):
     assert is_service_expensive(solver_name, stub_storage)
 
 
-def _incrby_uses(service, value, storage):
-    for _ in range(value): storage.incr_uses(service)
-
-def _incrby_fails(service, value, storage):
-    for _ in range(value): storage.incr_fails(service)
-
-
-settings.MAX_FAILS_PERCENTAGE = max_fails = 2
-
-settings.MINBID_CHECK_INTERVAL = 1
-settings.FAILS_CHECK_INTERVAL = 2
-
-
 @patch.multiple(antigate_api, minbid=DEFAULT)
 def test_checking_minbid(minbid, stub_storage):
     max_price = settings.ANTIGATE_MAX_PRICE / 1000.
@@ -69,104 +61,103 @@ def test_checking_minbid(minbid, stub_storage):
     assert is_antigate_minbid_ok()
 
 
+def test_checking_fails_percentage():
+    s = MagicMock()
+    service = "some service"
+    threshold = settings.MAX_FAILS_PERCENTAGE
 
-def test_checking_fails_percentage(stub_storage):
-    service = "one"
-    assert is_fails_percentage_ok(service, stub_storage)
+    s.get_uses.return_value = 0
+    s.get_fails.return_value = 100
+    assert is_fails_percentage_ok(service, s)
 
-    _incrby_uses(service, 100, stub_storage)
-    assert is_fails_percentage_ok(service, stub_storage)
+    s.get_uses.return_value = 1
+    s.get_fails.return_value = 100
+    assert not is_fails_percentage_ok(service, s)
 
+    uses = 100
     # ок: % фейлов на грани допустимого
-    _incrby_fails(service, max_fails, stub_storage)
-    assert is_fails_percentage_ok(service, stub_storage)
+    s.get_uses.return_value = uses
+    s.get_fails.return_value = uses / 100 * threshold
+    assert is_fails_percentage_ok(service, s)
 
     # не ок: % фейлов стал недопустимым
-    _incrby_fails(service, 1, stub_storage)
-    assert not is_fails_percentage_ok(service, stub_storage)
+    s.get_uses.return_value = uses
+    s.get_fails.return_value = uses / 100 * (threshold + 1)
+    assert not is_fails_percentage_ok(service, s)
 
 
-def test_checking_fails_percentage_with_timer(stub_storage):
-    timer_duration = 1
-    service = "one"
-    storage = stub_storage
-    storage.start_timer('fails', timer_duration)
+@patch("checkers.is_fails_percentage_ok")
+@patch("checkers.is_antigate_minbid_ok")
+def test_checking_fails_percentage_with_timer(
+        is_antigate_minbid_ok,
+        is_fails_percentage_ok):
+    s = MagicMock()
+    # проверяем функцию 'check_solver' для сервиса != 'antigate'
+    service = "not_antigate"
+    locals_ = locals()
 
-    # ок: сервис еще не использовался
-    assert check_solver(service, storage) is None
+    # ок: таймер не завершен
+    s.timer_expired.return_value = False
+    assert is_fails_percentage_ok.call_count == 0
+    assert check_solver(service, s) is None
+    reset_mocks(locals_)
 
-    # ок: хотя фейлов много, но таймер еще не закончился
-    _incrby_uses(service, 1, storage)
-    _incrby_fails(service, 2, storage)
-    assert not storage.timer_expired('fails')
-    assert check_solver(service, storage) is None
+    # ок: таймер завершен, но мало фейлов
+    s.timer_expired.return_value = True
+    is_fails_percentage_ok.return_value = True
+    assert check_solver(service, s) is None
+    assert is_fails_percentage_ok.call_count == 1
+    assert s.start_expired_timer.call_count == 1
+    assert is_antigate_minbid_ok.call_count == 0
+    reset_mocks(locals_)
 
-    # не ок: произошла проверка % фейлов;
-    time.sleep(timer_duration + eps)
-    assert storage.timer_expired('fails')
-    assert check_solver(service, storage) == CheckErrors.FAILS
+    # ок: таймер завершен и много фейлов
+    s.timer_expired.return_value = True
+    is_fails_percentage_ok.return_value = False
+    assert check_solver(service, s) == CheckErrors.FAILS
+    assert is_fails_percentage_ok.call_count == 1
+    assert s.start_expired_timer.call_count == 1
+    assert is_antigate_minbid_ok.call_count == 0
 
-    # ок: % фейлов понизился
-    _incrby_uses(service, 99, storage)
-    assert check_solver(service, storage) is None
 
-
-@patch.multiple(antigate_api, minbid=DEFAULT)
-def test_checking_minbid_and_fails_percentage_with_timer(minbid, stub_storage):
-    storage = stub_storage
+@patch("checkers.is_fails_percentage_ok")
+@patch("checkers.is_antigate_minbid_ok")
+def test_checking_minbid_and_fails_percentage_with_timer(
+        is_antigate_minbid_ok,
+        is_fails_percentage_ok):
+    s = MagicMock()
     service = settings.Solvers.ANTIGATE
+    locals_ = locals()
 
-    min_bid = settings.ANTIGATE_MAX_PRICE / 1000.
-    cheap_bid = min_bid - eps
-    expensive_bid = min_bid + eps
+    # ок: оба таймера не завершены
+    s.timer_expired.return_value = False
+    assert check_solver(service, s) is None
+    assert is_fails_percentage_ok.call_count == 0
+    assert is_antigate_minbid_ok.call_count == 0
+    reset_mocks(locals_)
 
-    time_fails = 1
+    # не ок: оба таймера завершены, minbid не ок
+    s.timer_expired.return_value = True
+    is_antigate_minbid_ok.return_value = False
+    is_fails_percentage_ok.return_value = False
+    assert check_solver(service, s) is CheckErrors.MINBID
+    assert is_antigate_minbid_ok.call_count == 1
+    assert is_fails_percentage_ok.call_count == 0
+    reset_mocks(locals_)
 
-    minbid.return_value = expensive_bid
-    storage.start_timer('minbid', time_fails)
-    storage.start_timer('fails', time_fails + 1)
+    # не ок: оба таймера завершены, minbid ок, но много ошибок
+    s.timer_expired.return_value = True
+    is_antigate_minbid_ok.return_value = True
+    is_fails_percentage_ok.return_value = False
+    assert check_solver(service, s) is CheckErrors.FAILS
+    assert is_antigate_minbid_ok.call_count == 1
+    assert is_fails_percentage_ok.call_count == 1
+    reset_mocks(locals_)
 
-    # не ок: при первом использовании сервиса 'antigate'
-    # проверяется ставка, а она велика
-    assert check_solver(service, storage) == CheckErrors.MINBID
-
-    # ок: фейлов много, ставка велика,
-    # но оба таймера еще не закончились
-    _incrby_uses(service, 1, storage)
-    _incrby_fails(service, 2, storage)
-    assert not storage.timer_expired('minbid')
-    assert not storage.timer_expired('fails')
-    assert check_solver(service, storage) is None
-
-    # не ок: таймер minbid закончился,
-    # произошла проверка значения мин. ставки
-    time.sleep(time_fails + eps)
-    assert storage.timer_expired('minbid')
-    assert not storage.timer_expired('fails')
-    assert check_solver(service, storage) == CheckErrors.MINBID
-
-    # не ок: оба таймера закончились,
-    # % фейлов и ставка по-прежнему нас не удовлетворяют
-    time.sleep(1)
-    assert storage.timer_expired('minbid')
-    assert storage.timer_expired('fails')
-    assert check_solver(service, storage) == CheckErrors.MINBID
-
-    # не ок: хотя minbid понизился, но % фейлов по-прежнему велик
-    minbid.return_value = cheap_bid
-    assert check_solver(service, storage) == CheckErrors.FAILS
-
-    # не ок: % фейлов понизился, но minbid повысился
-    minbid.return_value = expensive_bid
-    _incrby_uses(service, 99, storage)
-    assert check_solver(service, storage) == CheckErrors.MINBID
-
-    # ок: обе величины стали допустимыми
-    minbid.return_value = cheap_bid
-    assert check_solver(service, storage) is None
-
-    # ок: % фейлов повысился, но т.к. мы запустили таймер 'fails',
-    # то проверяется только ставка minbid, которая осталась низкой.
-    _incrby_fails(service, 2, storage)
-    storage.start_timer('fails', 1)
-    assert check_solver(service, storage) is None
+    # не ок: завершен только таймер 'fails', много ошибок
+    s.timer_expired.side_effect = lambda x: x == 'fails'
+    is_antigate_minbid_ok.return_value = False
+    is_fails_percentage_ok.return_value = False
+    assert check_solver(service, s) is CheckErrors.FAILS
+    assert is_antigate_minbid_ok.call_count == 0
+    assert is_fails_percentage_ok.call_count == 1
