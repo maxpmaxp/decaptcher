@@ -44,6 +44,10 @@ class StubStorage(BaseStorage):
     def get_fails(self, solver_name):
         return self._fails[solver_name]
 
+    def reset_counters(self):
+        self._fails.clear()
+        self._uses.clear()
+
     #### blocks
 
     def is_blocked(self, solver_name):

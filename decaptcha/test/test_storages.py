@@ -85,3 +85,14 @@ def test_timers(storage):
 def test_last_charge_date(storage):
     storage.update_last_charge_date('one')
     assert storage.get_last_charge_date('one')
+
+
+def test_reset(storage):
+    storage.incr_uses('one')
+    storage.incr_uses('two')
+    storage.incr_fails('one')
+
+    storage.reset_counters()
+    assert not storage.get_uses('one')
+    assert not storage.get_uses('two')
+    assert not storage.get_fails('one')

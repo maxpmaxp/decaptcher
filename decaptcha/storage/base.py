@@ -42,6 +42,10 @@ class BaseStorage(object):
     def incr_fails(self, solver_name):
         pass
 
+    @abc.abstractmethod
+    def reset_counters(self):
+        pass
+
     #### block
 
     @abc.abstractmethod

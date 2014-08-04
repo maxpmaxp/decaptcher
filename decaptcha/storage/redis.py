@@ -60,6 +60,10 @@ class RedisStorage(BaseStorage):
         counter = self.r.hget("counters:fails", solver_name)
         return int(counter or 0)
 
+    def reset_counters(self):
+        for counter_type in ("uses", "fails"):
+            self.r.delete("counters:%s" % counter_type)
+
     #### blocks
 
     def block(self, solver_name, seconds):
