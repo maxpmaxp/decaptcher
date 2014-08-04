@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from datetime import datetime
 
 import redis
 
@@ -77,4 +78,4 @@ class RedisStorage(BaseStorage):
         return self.r.get("timers:%s" % name) is None
 
     def start_timer(self, name, seconds):
-        self.r.setex("timers:%s" % name, seconds, "on")
+        self.r.setex("timers:%s" % name, seconds, str(datetime.now()))
