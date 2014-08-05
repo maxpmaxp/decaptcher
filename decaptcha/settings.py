@@ -3,6 +3,9 @@ from datetime import timedelta
 from os.path import dirname, join, abspath, exists
 from ConfigParser import SafeConfigParser, NoOptionError
 
+import bottle
+
+
 DEBUG = True
 
 CONF_FILE = '/etc/decaptcher.conf'
@@ -97,7 +100,8 @@ REDIS_CONF = {
     'password': None,
 }
 
-ROOT_DIR = dirname(dirname(abspath(__file__)))
+APP_DIR = dirname(abspath(__file__))
+ROOT_DIR = dirname(APP_DIR)
 LOG_DIR = get_var('common', 'logdir', join(ROOT_DIR, 'log'))
 
 if not exists(LOG_DIR):
@@ -175,3 +179,7 @@ CARD_INFO_KEYS = [
 ]
 CARD_USER = read_config_section('card_user', CARD_USER_KEYS)
 CARD_INFO = read_config_section('card_info', CARD_INFO_KEYS)
+
+### bottle conf
+
+bottle.TEMPLATE_PATH.append(join(APP_DIR, 'templates'))
