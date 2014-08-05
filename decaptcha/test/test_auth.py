@@ -4,7 +4,7 @@ import pytest
 import webtest
 
 from app import app as our_app
-from controllers.solve import requires_auth
+from controllers.auth import requires_auth
 
 
 @our_app.route('/ping')

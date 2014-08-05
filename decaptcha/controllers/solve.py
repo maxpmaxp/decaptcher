@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import logging
 
-from bottle import request, abort, auth_basic
+from bottle import request, abort
 
 import settings
 import solvers.api as solvers
@@ -10,17 +10,10 @@ from solvers.de_captcher import ResultCodes
 from storage.redis import RedisStorage
 from checkers import check_solver
 from errors import SolverError
+from .auth import check_user
 
 
 log = logging.getLogger('app')
-
-
-def check_user(username, password):
-    user = settings.APP_ACCESS
-    return username == user['username'] and password == user['password']
-
-# не используется
-requires_auth = auth_basic(check_user)
 
 
 def check_solver_name(name):

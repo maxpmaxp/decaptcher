@@ -8,6 +8,7 @@ import solvers.api as solvers
 from errors import SolverError
 from storage.redis import RedisStorage
 from rechargers import RECHARGERS
+from .auth import requires_auth
 
 
 def get_balance_str(service):
@@ -18,6 +19,7 @@ def get_balance_str(service):
         return '-'
 
 
+@requires_auth
 def show_stats():
     """ Renders stats page with
     - current balances for all solvers with the time of the recent payment
