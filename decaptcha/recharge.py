@@ -76,6 +76,7 @@ def main(args):
             recharger = RECHARGERS[service](user, card)
             recharger.auto_run()
             storage.start_timer(recharge_timer, seconds=CHECK_BALANCE_INTERVAL)
+            storage.update_last_charge_date()
 
 
 if __name__ == '__main__':

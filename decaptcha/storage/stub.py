@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+from datetime import datetime
 from collections import defaultdict
 
 from .base import BaseStorage
@@ -13,6 +14,7 @@ class StubStorage(BaseStorage):
         self._current_solver = None
         self._timer_ends = {}
         self._banned = set()
+        self._last_charge_dates = {}
 
     #### unused
 
@@ -59,3 +61,11 @@ class StubStorage(BaseStorage):
 
     def timer_expired(self, name):
         return self._timer_ends.get(name, 0) < time.time()
+
+    #### charge
+
+    def update_last_charge_date(self, solver_name):
+        self._last_charge_dates[solver_name] = datetime.now()
+
+    def get_last_charge_date(self, solver_name):
+        return self._last_charge_dates[solver_name]
