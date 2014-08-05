@@ -5,12 +5,14 @@ import logging.config
 from bottle import Bottle, run
 
 import settings
-from controllers import solve_captcha
+from controllers import solve_captcha, show_stats
 
 
 logging.config.dictConfig(settings.LOGGING)
+
 app = Bottle()
 app.route('/', 'POST', solve_captcha)
+app.route('/stats', 'GET', show_stats)
 
 
 if __name__ == '__main__':
