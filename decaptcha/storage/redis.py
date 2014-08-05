@@ -8,6 +8,8 @@ import settings
 from .base import BaseStorage
 
 
+DATE_FMT = "%Y-%m-%d %H:%M:%S"
+
 class RedisStorage(BaseStorage):
     pool = redis.ConnectionPool(**settings.REDIS_CONF)
 
@@ -58,6 +60,10 @@ class RedisStorage(BaseStorage):
         counter = self.r.hget("counters:fails", solver_name)
         return int(counter or 0)
 
+    def reset_counters(self):
+        for counter_type in ("uses", "fails"):
+            self.r.delete("counters:%s" % counter_type)
+
     #### blocks
 
     def block(self, solver_name, seconds):
@@ -78,4 +84,14 @@ class RedisStorage(BaseStorage):
         return self.r.get("timers:%s" % name) is None
 
     def start_timer(self, name, seconds):
-        self.r.setex("timers:%s" % name, seconds, str(datetime.now()))
+        now = datetime.now().strftime(DATE_FMT)
+        self.r.setex("timers:%s" % name, seconds, now)
+
+    #### charge
+
+    def update_last_charge_date(self, solver_name):
+        now = datetime.now().strftime(DATE_FMT)
+        self.r.hset("last_charge:date", solver_name, now)
+
+    def get_last_charge_date(self, solver_name):
+        return self.r.hget("last_charge:date", solver_name)

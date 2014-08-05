@@ -42,6 +42,10 @@ class BaseStorage(object):
     def incr_fails(self, solver_name):
         pass
 
+    @abc.abstractmethod
+    def reset_counters(self):
+        pass
+
     #### block
 
     @abc.abstractmethod
@@ -65,3 +69,13 @@ class BaseStorage(object):
     def start_expired_timer(self, name, seconds):
         if self.timer_expired(name):
             self.start_timer(name, seconds)
+
+    #### charge
+
+    @abc.abstractmethod
+    def update_last_charge_date(self, solver_name):
+        pass
+
+    @abc.abstractmethod
+    def get_last_charge_date(self, solver_name):
+        pass

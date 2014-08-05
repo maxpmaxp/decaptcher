@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+from datetime import datetime
 
 import pytest
 
@@ -79,3 +80,19 @@ def test_timers(storage):
 
     time.sleep(duration + 0.1)
     assert storage.timer_expired('first')
+
+
+def test_last_charge_date(storage):
+    storage.update_last_charge_date('one')
+    assert storage.get_last_charge_date('one')
+
+
+def test_reset(storage):
+    storage.incr_uses('one')
+    storage.incr_uses('two')
+    storage.incr_fails('one')
+
+    storage.reset_counters()
+    assert not storage.get_uses('one')
+    assert not storage.get_uses('two')
+    assert not storage.get_fails('one')

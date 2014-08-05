@@ -8,7 +8,7 @@ from webtest.forms import Upload
 import settings
 from solvers.de_captcher import ResultCodes
 from errors import SolverError
-from app import (
+from controllers.solve import (
     decaptcher_response, check_user, check_request,
     check_solver_name)
 
@@ -48,8 +48,8 @@ def test_check_solver_name():
     pytest.raises(HTTPError, check_solver_name, "not_existing")
 
 
-@patch("app.check_user")
-@patch("app.check_solver_name")
+@patch("controllers.solve.check_user")
+@patch("controllers.solve.check_solver_name")
 def test_check_request(check_solver_name, check_user):
     username = 'some user'
     password = 'some passwd'
@@ -95,11 +95,12 @@ def reset_mocks(locals_):
 @patch.dict("settings.BLOCK_PERIODS", {"errcode": 7})
 def test_solve_captcha(app):
 
-    check_request = _patch("app.check_request")
-    decaptcher_response = _patch("app.decaptcher_response")
-    solvers = _patch("app.solvers")
-    check_solver = _patch("app.check_solver")
-    storage = _patch("app.RedisStorage")()
+    m = 'controllers.solve'
+    check_request = _patch("%s.check_request" % m)
+    decaptcher_response = _patch("%s.decaptcher_response" % m)
+    solvers = _patch("%s.solvers" % m)
+    check_solver = _patch("%s.check_solver" % m)
+    storage = _patch("%s.RedisStorage" % m)()
 
     solve = MagicMock()
     solvers.get_highest_notblocked.return_value.__getitem__.return_value\
